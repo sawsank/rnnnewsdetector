@@ -85,9 +85,6 @@ python scripts/train.py \
 python scripts/train.py --help
 ```
 
-## Workflow diagram
-
-![Workflow diagram](workflow.png)
 
 ## Streamlit UI (Optional)
 
