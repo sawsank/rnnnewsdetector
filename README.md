@@ -85,6 +85,29 @@ python scripts/train.py \
 python scripts/train.py --help
 ```
 
+## Streamlit UI (Optional)
+
+```bash
+streamlit run app.py
+```
+
+## Workflow diagram
+
+![Workflow diagram](https://via.placeholder.com/900x360.png?text=RNN+Workflow+diagram)
+
+```mermaid
+flowchart LR
+    A[Load CSV files] --> B[Preprocess + Tokenize]
+    B --> C[Build Vocabulary]
+    C --> D[Create Datasets/DataLoaders]
+    D --> E[Train RNN (GRU/LSTM)]
+    E --> F[Validate + Save best checkpoint]
+    F --> G[Test/Evaluate}
+    G --> H[Export metrics & checkpoints]
+```
+
+> Note: GitHub markdown does not always render mermaid diagrams outside pull requests. The image above is a placeholder; replace with your own generated PNG/SVG as needed.
+
 ## Notes
 
 - Ensure `News _dataset/` path is correct (it contains a space in current name).
