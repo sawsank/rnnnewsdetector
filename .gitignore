@@ -1,0 +1,29 @@
+.venv/
+env/
+venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.env
+*.db
+*.sqlite3
+*.egg-info/
+.DS_Store
+
+# Training artifacts
+artifacts/
+checkpoints/
+runs/
+logs/
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+
+# Python caches
+.pytest_cache/
+
+# Notebooks
+.ipynb_checkpoints/

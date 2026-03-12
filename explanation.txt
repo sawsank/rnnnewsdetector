@@ -1,0 +1,209 @@
+Explanation — How this project works (and why each step matters)
+===============================================================
+
+This folder contains a complete end-to-end Recurrent Neural Network (RNN) project:
+  1) Prepare a text dataset (True vs Fake news)
+  2) Convert text into numbers (tokens -> ids) using a vocabulary
+  3) Train an RNN (GRU/LSTM) classifier in PyTorch
+  4) Save the best trained model as a checkpoint
+  5) Load the checkpoint in a Streamlit app for instant predictions
+
+
+Part A — Dataset and the ML problem
+----------------------------------
+Files:
+  - News _dataset/True.csv   (label = 1)
+  - News _dataset/Fake.csv   (label = 0)
+
+Each CSV contains columns like:
+  title, text, subject, date
+
+What the model learns:
+  - Input: article text (we use title + body combined)
+  - Output: probability that the article is TRUE
+    - if prob_true >= 0.5 → predict TRUE
+    - else → predict FAKE
+
+Why this step is essential:
+  - ML models need a clearly defined input/output mapping.
+  - “True vs Fake” is a binary classification problem.
+
+
+Part B — Preprocessing and Vocabulary (text → token ids)
+--------------------------------------------------------
+Code:
+  - rnn_news/data.py
+
+Steps:
+  1) Read both CSVs and attach labels (True=1, Fake=0).
+  2) Create a single “input_text” field by concatenating:
+       input_text = title + " " + text
+  3) Tokenize the text:
+       - split into word-like pieces using a regex
+       - lowercase tokens
+  4) Build a vocabulary from training data:
+       - count token frequencies
+       - keep common tokens (min_freq) up to max_vocab size
+       - add special tokens:
+           <pad> for padding shorter sequences
+           <unk> for unknown tokens not seen in training
+  5) Convert tokens to integer ids using vocab.stoi.
+  6) Truncate sequences to max_len tokens.
+  7) Pad sequences in a batch so they form a rectangular tensor.
+
+Artifacts produced:
+  - artifacts/vocab.json
+
+Why this step is essential:
+  - Neural networks cannot consume raw strings; they require numbers.
+  - The vocabulary is the “dictionary” mapping token → id.
+  - Using the SAME vocab at training and inference is critical:
+      If you build a different vocab later, token ids change and the model
+      receives the wrong inputs (predictions become meaningless).
+
+
+Part C — Train/Validation/Test splits (measuring real performance)
+------------------------------------------------------------------
+Code:
+  - rnn_news/data.py (make_splits)
+
+Splits:
+  - Train: used to update model weights
+  - Validation: used to choose the best checkpoint (model selection)
+  - Test: used once at the end to estimate final generalization
+
+Why this step is essential:
+  - Without a validation/test split, you might only measure how well the model
+    memorizes training data (overfitting).
+  - Validation accuracy lets us pick the best epoch automatically.
+
+
+Part D — The RNN model (GRU/LSTM)
+---------------------------------
+Code:
+  - rnn_news/model.py (RNNClassifier)
+
+Model components:
+  1) Embedding layer:
+       - turns token ids into dense vectors (learned representations)
+  2) RNN (GRU or LSTM):
+       - processes the token sequence in order
+       - produces hidden states summarizing the sequence
+  3) Classification head:
+       - takes the final hidden state(s)
+       - outputs a single logit (unnormalized score)
+
+Output meaning:
+  - logit -> sigmoid(logit) = probability of TRUE
+
+Why this step is essential:
+  - The RNN provides sequence modeling: word order and context matter.
+  - Embeddings allow the model to learn useful word representations.
+
+
+Part E — Training loop (how the model learns)
+---------------------------------------------
+Code:
+  - rnn_news/training.py
+  - scripts/train.py
+
+Training steps (each batch):
+  1) Forward pass: compute logits for the batch
+  2) Loss: BCEWithLogitsLoss
+       - combines sigmoid + binary cross entropy in a stable way
+  3) Backprop: compute gradients
+  4) Optimizer step: update weights (AdamW)
+  5) Optional gradient clipping:
+       - prevents exploding gradients (common in RNNs)
+
+Metrics:
+  - accuracy computed by thresholding sigmoid(logit) at 0.5
+
+Why this step is essential:
+  - Training is the optimization process that converts a random model into a
+    useful classifier.
+
+
+Part F — Checkpointing (saving the best model)
+----------------------------------------------
+Files/folders:
+  - checkpoints/best.pt
+
+What a checkpoint contains:
+  - model_state_dict: the trained weights
+  - optimizer_state_dict: optimizer state (useful if resuming training)
+  - config: model hyperparameters used to build the model
+  - vocab_path: path to artifacts/vocab.json used at training time
+
+Why checkpointing is essential:
+  - Training can take time; you don’t want to retrain each time you predict.
+  - “best.pt” stores the best validation model, not just the last epoch.
+  - The Streamlit app needs a saved model to load for inference.
+
+
+Part G — Streamlit app (turning the model into a usable product)
+---------------------------------------------------------------
+File:
+  - app.py
+
+What the app does:
+  1) Loads the checkpoint (default: checkpoints/best.pt)
+  2) Loads the linked vocabulary file (artifacts/vocab.json)
+  3) Takes user input (title + text)
+  4) Tokenizes + encodes text using the same vocab
+  5) Runs the model forward pass and shows:
+       - predicted label (TRUE/FAKE)
+       - probabilities
+
+Why this step is essential:
+  - It provides a simple UI so the model can be used without writing code.
+  - It demonstrates “ML → application” (deployment-style workflow).
+  - It is the fastest way to test the model on new unseen text.
+
+
+Part H — How everything connects (the dependency chain)
+-------------------------------------------------------
+Dataset files:
+  News _dataset/True.csv + Fake.csv
+        ↓
+Training script:
+  scripts/train.py
+        ↓ produces
+Vocabulary:
+  artifacts/vocab.json
+Checkpoint:
+  checkpoints/best.pt  (stores path to vocab.json)
+        ↓
+Streamlit app:
+  app.py loads checkpoint + vocab and runs predictions
+
+Key point:
+  - The checkpoint and vocab must match (trained together).
+
+
+Part I — Why each file exists (quick map)
+-----------------------------------------
+  requirements.txt
+    - Python dependencies needed to run training + app
+
+  scripts/train.py
+    - command-line entrypoint for training and evaluation
+
+  rnn_news/data.py
+    - reading CSVs, tokenization, vocab, dataset/dataloader helpers
+
+  rnn_news/model.py
+    - GRU/LSTM classifier architecture
+
+  rnn_news/training.py
+    - training + evaluation loops, checkpoint save/load
+
+  app.py
+    - Streamlit user interface for inference
+
+  instruction.txt
+    - copy/paste commands for setup, training, evaluation, and Streamlit
+
+  explanation.txt (this file)
+    - explains the “why” behind each step and how everything fits together
+

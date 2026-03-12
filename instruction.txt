@@ -1,0 +1,111 @@
+RNN Fake News Project — Instructions
+===================================
+
+This project trains a GRU/LSTM Recurrent Neural Network to classify news as:
+  - TRUE (label=1) using News _dataset/True.csv
+  - FAKE (label=0) using News _dataset/Fake.csv
+
+
+1) Create + activate virtual environment
+---------------------------------------
+From the project folder:
+
+  cd /Users/shasankjoshi/Desktop/Antigravity/RNN
+
+Create venv (if you haven’t already):
+
+  python3 -m venv .venv
+
+Activate (macOS / zsh):
+
+  source .venv/bin/activate
+
+Confirm you are using the venv python:
+
+  which python
+  python --version
+
+
+2) Install dependencies
+----------------------
+Upgrade pip and install requirements:
+
+  python -m pip install -U pip
+  pip install -r requirements.txt
+
+
+3) Train the RNN model
+---------------------
+The training script:
+  scripts/train.py
+  python scripts/train.py --true_csv "News _dataset/True.csv" --fake_csv "News _dataset/Fake.csv" --epochs 3 --model gru
+
+It will:
+  - load the two CSVs
+  - build a vocabulary from the training split
+  - train a GRU/LSTM classifier
+  - save vocab to:        artifacts/vocab.json
+  - save best checkpoint: checkpoints/best.pt
+
+Basic training (GRU, 3 epochs):
+
+  python scripts/train.py \
+    --true_csv "News _dataset/True.csv" \
+    --fake_csv "News _dataset/Fake.csv" \
+    --model gru \
+    --epochs 3
+
+Train an LSTM instead:
+
+  python scripts/train.py \
+    --true_csv "News _dataset/True.csv" \
+    --fake_csv "News _dataset/Fake.csv" \
+    --model lstm \
+    --epochs 3
+
+Speed up training (use shorter sequences):
+
+  python scripts/train.py \
+    --true_csv "News _dataset/True.csv" \
+    --fake_csv "News _dataset/Fake.csv" \
+    --model gru \
+    --epochs 1 \
+    --batch_size 512 \
+    --max_len 80
+
+Notes:
+  - On Apple Silicon, PyTorch may use MPS automatically if available.
+  - You can force device with: --device cpu | mps | cuda
+
+
+4) Evaluate a saved checkpoint (optional)
+----------------------------------------
+Evaluate the saved model on the test split:
+
+  python scripts/train.py \
+    --true_csv "News _dataset/True.csv" \
+    --fake_csv "News _dataset/Fake.csv" \
+    --eval_only \
+    --checkpoint checkpoints/best.pt
+
+
+5) Run the Streamlit app
+-----------------------
+The app file:
+  app.py
+
+Make sure you have a checkpoint first:
+  - checkpoints/best.pt
+  - artifacts/vocab.json
+
+Start Streamlit:
+
+  streamlit run app.py
+
+Then in the browser:
+  - paste a news title and/or article text
+  - click "Predict"
+
+If your checkpoint is not at the default location, you can paste a different path
+in the app’s "Checkpoint path" input.
+
