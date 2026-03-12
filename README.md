@@ -86,6 +86,20 @@ python scripts/train.py --help
 ```
 
 
+## Workflow diagram
+
+![Workflow diagram](workflow.png)
+
+This project follows the sequence shown in `workflow.png`:
+
+1. Load and combine `News _dataset/True.csv` + `News _dataset/Fake.csv`
+2. Preprocess text (title + body), tokenize, and build vocabulary
+3. Create train/validation/test splits and PyTorch datasets/dataloaders
+4. Train RNN model (Gru/LSTM) with checkpointing (`best.pt`, optional `last.pt`)
+5. Validate and early-stop using `--patience` + `--min_delta`
+6. Evaluate on test set via `--eval_only` and report loss/accuracy
+7. Keep output artifacts in `artifacts/` and `checkpoints/`
+
 ## Streamlit UI (Optional)
 
 ```bash
