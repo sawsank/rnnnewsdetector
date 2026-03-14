@@ -110,4 +110,5 @@ streamlit run app.py
 
 - Ensure `News _dataset/` path is correct (it contains a space in current name).
 - Add any new checkpoints/artifacts to `.gitignore` (`artifacts/`, `checkpoints/`, `runs/`).
+- `screenshot/` contains example screenshots (e.g., Streamlit UI) used for documentation or demos.
 
